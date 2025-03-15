@@ -5,7 +5,7 @@
 ============================================================================*/
 
 #define _GNU_SOURCE
-#define _XOPEN_SOURCE 500
+#define _POSIX_C_SOURCE 200809L  // Replaced _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +23,26 @@
 #include "sxmlc.h"
 #include "xhtml.h"
 #include "util.h"
+
+// Add this for asprintf implementation
+#include <stdarg.h>
+
+// Custom asprintf for macOS compatibility
+#ifndef asprintf
+int asprintf(char **strp, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    int len = vsnprintf(NULL, 0, fmt, args); // Calculate length
+    va_end(args);
+    if (len < 0) return -1;
+    *strp = (char *)malloc(len + 1);
+    if (!*strp) return -1;
+    va_start(args, fmt);
+    len = vsnprintf(*strp, len + 1, fmt, args);
+    va_end(args);
+    return len;
+}
+#endif
 
 static char *tempdir = NULL;
 
